@@ -3,6 +3,7 @@ services:
     name: smartbrowse-backend
     env: python
     plan: free
+    pythonVersion: "3.11.0"
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
