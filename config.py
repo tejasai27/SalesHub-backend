@@ -34,7 +34,7 @@ class Config:
     
     # Gemini AI Config
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+    GEMINI_MODEL = 'gemini-2.5-flash-lite'  # Lite version may have separate quota
     
     # CORS Config - UPDATED WITH YOUR ACTUAL VERCEL URL
     cors_origins_env = os.getenv('CORS_ORIGINS', '').strip()

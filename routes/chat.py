@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from database.models import db, User, ChatSession, DailySession
+from database.models import db, User, ChatSession
 from utils.gemini_client import GeminiClient
 import uuid
 from datetime import datetime
@@ -61,22 +61,6 @@ def send_message():
             timestamp=datetime.utcnow()
         )
         db.session.add(ai_msg)
-        
-        # Update daily session
-        daily_session = DailySession.query.filter_by(session_id=session_id).first()
-        if daily_session:
-            daily_session.chat_messages_count += 2
-            daily_session.end_time = datetime.utcnow()
-        else:
-            daily_session = DailySession(
-                session_id=session_id,
-                user_id=user_id,
-                start_time=datetime.utcnow(),
-                end_time=datetime.utcnow(),
-                chat_messages_count=2
-            )
-            db.session.add(daily_session)
-        
         db.session.commit()
         
         return jsonify({
@@ -125,22 +109,10 @@ def get_chat_history(user_id):
 
 @chat_bp.route('/api/chat/test', methods=['GET'])
 def test_gemini():
-    """Test Gemini API connection"""
-    try:
-        test_prompt = "Hello, how are you?"
-        response = gemini_client.generate_response(test_prompt)
-        
-        return jsonify({
-            "success": True,
-            "test": "Gemini API Test",
-            "prompt": test_prompt,
-            "response": response,
-            "gemini_available": gemini_client.gemini_available
-        })
-        
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e),
-            "gemini_available": gemini_client.gemini_available
-        })
+    """Test Gemini API connection - does NOT call the API to save quota"""
+    return jsonify({
+        "success": True,
+        "test": "Gemini API Status",
+        "gemini_available": gemini_client.gemini_available,
+        "message": "API client is configured" if gemini_client.gemini_available else "API key not configured"
+    })

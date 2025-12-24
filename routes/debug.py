@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from database.models import db, BrowserActivity, DailySession, User
+from database.models import db, User, ChatSession
 from datetime import datetime
 import logging
 
@@ -12,23 +12,7 @@ def db_status():
     try:
         # Count total records
         total_users = User.query.count()
-        total_activities = BrowserActivity.query.count()
-        total_sessions = DailySession.query.count()
-        
-        # Get latest activities
-        latest_activities = BrowserActivity.query.order_by(
-            BrowserActivity.timestamp.desc()
-        ).limit(5).all()
-        
-        activities_list = []
-        for activity in latest_activities:
-            activities_list.append({
-                "id": activity.activity_id,
-                "user_id": activity.user_id,
-                "type": activity.activity_type,
-                "url": activity.url[:50] if activity.url else "",
-                "timestamp": activity.timestamp.isoformat() if activity.timestamp else None
-            })
+        total_chats = ChatSession.query.count()
         
         # Check if tables exist
         from sqlalchemy import inspect
@@ -41,10 +25,8 @@ def db_status():
             "tables": tables,
             "counts": {
                 "users": total_users,
-                "activities": total_activities,
-                "sessions": total_sessions
+                "chat_messages": total_chats
             },
-            "latest_activities": activities_list,
             "timestamp": datetime.utcnow().isoformat()
         })
         
@@ -70,35 +52,18 @@ def user_data(user_id):
                 "user_exists": False
             })
         
-        # Get all activities for user
-        all_activities = BrowserActivity.query.filter_by(
+        # Get chat history for user
+        chats = ChatSession.query.filter_by(
             user_id=user_id
-        ).order_by(BrowserActivity.timestamp.desc()).all()
+        ).order_by(ChatSession.timestamp.desc()).limit(50).all()
         
-        # Get all sessions for user
-        all_sessions = DailySession.query.filter_by(
-            user_id=user_id
-        ).order_by(DailySession.start_time.desc()).all()
-        
-        activities_list = []
-        for activity in all_activities[:50]:  # Limit to 50 for response
-            activities_list.append({
-                "activity_id": activity.activity_id,
-                "activity_type": activity.activity_type,
-                "url": activity.url,
-                "page_title": activity.page_title,
-                "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
-                "duration_seconds": activity.duration_seconds
-            })
-        
-        sessions_list = []
-        for session in all_sessions:
-            sessions_list.append({
-                "session_id": session.session_id,
-                "start_time": session.start_time.isoformat() if session.start_time else None,
-                "end_time": session.end_time.isoformat() if session.end_time else None,
-                "total_pages_visited": session.total_pages_visited,
-                "total_interactions": session.total_interactions
+        chats_list = []
+        for chat in chats:
+            chats_list.append({
+                "chat_id": chat.chat_id,
+                "message_type": chat.message_type,
+                "message_text": chat.message_text[:100] if chat.message_text else "",
+                "timestamp": chat.timestamp.isoformat() if chat.timestamp else None
             })
         
         return jsonify({
@@ -109,10 +74,8 @@ def user_data(user_id):
                 "created_at": user.created_at.isoformat() if user.created_at else None,
                 "last_active": user.last_active.isoformat() if user.last_active else None
             },
-            "activities_count": len(all_activities),
-            "sessions_count": len(all_sessions),
-            "activities": activities_list,
-            "sessions": sessions_list
+            "chat_messages_count": len(chats),
+            "chats": chats_list
         })
         
     except Exception as e:

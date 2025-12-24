@@ -43,12 +43,10 @@ def create_app():
     
     # Import routes after app is created to avoid circular imports
     from routes.chat import chat_bp
-    from routes.tracking import tracking_bp
     from routes.debug import debug_bp
     
     # Register blueprints
     app.register_blueprint(chat_bp)
-    app.register_blueprint(tracking_bp)
     app.register_blueprint(debug_bp)
     
     # Health check endpoint
@@ -68,9 +66,7 @@ def create_app():
             "request_origin": request.headers.get('Origin', 'none'),
             "endpoints": {
                 "chat": "/api/chat/send",
-                "tracking": "/api/track/activity",
-                "history": "/api/chat/history/<user_id>",
-                "summary": "/api/track/summary/<user_id>"
+                "history": "/api/chat/history/<user_id>"
             }
         })
     
