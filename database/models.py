@@ -26,19 +26,6 @@ class ChatSession(db.Model):
     message_text = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-# class BrowserActivity(db.Model):
-#     __tablename__ = 'browser_activities'
-    
-#     activity_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     user_id = db.Column(db.String(255), db.ForeignKey('users.user_id'), nullable=False)
-#     session_id = db.Column(db.String(255))
-#     url = db.Column(db.Text, nullable=False)
-#     domain = db.Column(db.String(255))
-#     page_title = db.Column(db.Text)
-#     activity_type = db.Column(db.Enum('page_visit', 'click', 'scroll', 'form_input', 'tab_change', 'search'))
-#     element_details = db.Column(db.JSON)
-#     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-#     duration_seconds = db.Column(db.Integer, default=0)
 
 class BrowserActivity(db.Model):
     __tablename__ = 'browser_activities'

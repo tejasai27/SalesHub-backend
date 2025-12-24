@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 
@@ -13,6 +12,12 @@ class Config:
     if os.getenv('DATABASE_URL'):
         # For PostgreSQL on Render
         SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL').replace('postgres://', 'postgresql://')
+    elif os.getenv('USE_SQLITE', 'true').lower() == 'true':
+        # SQLite for local development (no MySQL needed)
+        import os as os_module
+        basedir = os_module.path.abspath(os_module.path.dirname(__file__))
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{os_module.path.join(basedir, 'app.db')}"
+        print("Using SQLite database for local development")
     else:
         # Local MySQL fallback
         DB_HOST = os.getenv('DB_HOST', 'localhost')
@@ -29,7 +34,7 @@ class Config:
     
     # Gemini AI Config
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-pro')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
     
     # CORS Config - UPDATED WITH YOUR ACTUAL VERCEL URL
     cors_origins_env = os.getenv('CORS_ORIGINS', '').strip()
