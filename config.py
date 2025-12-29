@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -36,19 +37,22 @@ class Config:
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
     GEMINI_MODEL = 'gemini-2.5-flash-lite'  # Lite version may have separate quota
     
-    # CORS Config - UPDATED WITH YOUR ACTUAL VERCEL URL
+    # CORS Config - Supports Chrome extensions and web origins
     cors_origins_env = os.getenv('CORS_ORIGINS', '').strip()
     if cors_origins_env:
         CORS_ORIGINS = cors_origins_env.split(',')
     else:
-        # Default origins - UPDATE THIS WITH YOUR ACTUAL VERCEL URL
+        # Default origins - includes Vercel URLs and Chrome extensions
         CORS_ORIGINS = [
             'https://extension-frontend-git-main-bathula-sai-kirans-projects.vercel.app',
             'https://extension-frontend-qfk87o3nu-bathula-sai-kirans-projects.vercel.app',
             'https://smartbrowse-ai.vercel.app',
             'http://localhost:3000',
-            'chrome-extension://*',
+            'http://localhost:5173',
+            # Chrome extension origins - add specific IDs or use regex pattern
+            re.compile(r'^chrome-extension://.*$'),
         ]
     
     # Log CORS configuration on import
     print(f"CORS Origins configured: {CORS_ORIGINS}")
+
