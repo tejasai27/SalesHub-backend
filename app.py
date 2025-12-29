@@ -44,10 +44,12 @@ def create_app():
     # Import routes after app is created to avoid circular imports
     from routes.chat import chat_bp
     from routes.debug import debug_bp
+    from routes.tracking import tracking_bp
     
     # Register blueprints
     app.register_blueprint(chat_bp)
     app.register_blueprint(debug_bp)
+    app.register_blueprint(tracking_bp)
     
     # Health check endpoint
     @app.route('/api/health', methods=['GET', 'OPTIONS'])

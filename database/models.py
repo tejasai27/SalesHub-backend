@@ -1,6 +1,6 @@
 """
 Database models for the sales chatbot.
-Includes User profiles and ChatSession with metadata.
+Includes User profiles, ChatSession with metadata, and WebsiteVisit tracking.
 """
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -30,6 +30,7 @@ class User(db.Model):
     
     # Relationships
     chats = db.relationship('ChatSession', backref='user', lazy=True)
+    visits = db.relationship('WebsiteVisit', backref='user', lazy=True)
     
     def to_dict(self):
         """Convert to dictionary for API responses."""
@@ -71,3 +72,41 @@ class ChatSession(db.Model):
             "response_time_ms": self.response_time_ms,
             "tokens_used": self.tokens_used
         }
+
+
+class WebsiteVisit(db.Model):
+    """Model to track website visits and tab changes."""
+    __tablename__ = 'website_visits'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.String(255), db.ForeignKey('users.user_id'), nullable=False)
+    
+    # URL and page info
+    url = db.Column(db.Text, nullable=False)
+    domain = db.Column(db.String(255))  # Extracted from URL for grouping
+    title = db.Column(db.String(500))
+    favicon_url = db.Column(db.String(500))
+    
+    # Event tracking
+    event_type = db.Column(db.String(50))  # 'page_visit', 'tab_switch', 'url_change'
+    tab_id = db.Column(db.Integer)
+    window_id = db.Column(db.Integer)
+    
+    # Time tracking
+    duration_seconds = db.Column(db.Integer, default=0)  # Time spent on page
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses."""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "url": self.url,
+            "domain": self.domain,
+            "title": self.title,
+            "event_type": self.event_type,
+            "tab_id": self.tab_id,
+            "duration_seconds": self.duration_seconds,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None
+        }
+
