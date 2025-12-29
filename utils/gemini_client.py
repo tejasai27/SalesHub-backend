@@ -165,22 +165,45 @@ class GeminiClient:
             max_tokens (int): Maximum tokens in response
             
         Returns:
-            str: AI generated response
+            dict: {
+                'text': str - AI generated response,
+                'tokens_used': int - Token count (if available),
+                'response_obj': object - Full API response
+            }
         """
         # Check if Gemini is available
         if not self.gemini_available:
-            return ("Hello! I'm SalesHub AI, your sales assistant. "
+            fallback_text = ("Hello! I'm SalesHub AI, your sales assistant. "
                    "To enable AI chat features, please configure the Gemini API key. "
                    "Get a free API key from https://ai.google.dev/")
+            return {
+                'text': fallback_text,
+                'tokens_used': None,
+                'response_obj': None
+            }
         
         try:
             # Build the full prompt with context
             full_prompt = self._build_context_prompt(prompt, conversation_history, context)
             
             # Call API with retry logic
-            response = self._call_api_with_retry(full_prompt, max_tokens)
+            response_text = self._call_api_with_retry(full_prompt, max_tokens)
             
-            return response
+            # Try to extract token usage if available
+            # Note: Gemini API may not always provide token counts in the free tier
+            tokens_used = None
+            try:
+                # This is a placeholder - Gemini SDK structure may vary
+                # You might need to check the actual response object structure
+                tokens_used = None  # Will be None if not available
+            except:
+                pass
+            
+            return {
+                'text': response_text,
+                'tokens_used': tokens_used,
+                'response_obj': None
+            }
             
         except Exception as e:
             error_str = str(e)
@@ -188,14 +211,20 @@ class GeminiClient:
             
             # Provide helpful error messages
             if "429" in error_str or "quota" in error_str.lower():
-                return ("I'm currently experiencing high demand. Please wait a moment and try again. "
+                error_text = ("I'm currently experiencing high demand. Please wait a moment and try again. "
                        "If this persists, your daily API quota may have been reached.")
             elif "safety" in error_str.lower():
-                return ("I couldn't process that request due to content safety filters. "
+                error_text = ("I couldn't process that request due to content safety filters. "
                        "Please rephrase your question.")
             else:
-                return ("I apologize, but I'm having trouble processing your request. "
+                error_text = ("I apologize, but I'm having trouble processing your request. "
                        "Please try again in a moment.")
+            
+            return {
+                'text': error_text,
+                'tokens_used': None,
+                'response_obj': None
+            }
     
     def get_chat_context(self, user_id, session_id):
         """

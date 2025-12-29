@@ -82,21 +82,29 @@ def send_message():
         context = gemini_client.get_chat_context(user_id, session_id)
         
         # Generate AI response with timing
-        with ResponseTimer():
-            ai_response = gemini_client.generate_response(
+        timer = ResponseTimer()
+        with timer:
+            ai_response_data = gemini_client.generate_response(
                 message,
                 context=context,
                 conversation_history=conversation_history
             )
         
-        # Store AI response
+        # Extract response text and tokens
+        ai_response = ai_response_data['text'] if isinstance(ai_response_data, dict) else ai_response_data
+        tokens_used = ai_response_data.get('tokens_used') if isinstance(ai_response_data, dict) else None
+        response_time_ms = int(timer.duration_ms) if timer.duration_ms else None
+        
+        # Store AI response with performance metrics
         ai_msg = ChatSession(
             user_id=user_id,
             session_id=session_id,
             message_id=str(uuid.uuid4()),
             message_type='assistant',
             message_text=ai_response,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
+            response_time_ms=response_time_ms,
+            tokens_used=tokens_used
         )
         db.session.add(ai_msg)
         db.session.commit()
@@ -111,6 +119,10 @@ def send_message():
             "user_id": user_id,
             "session_id": session_id,
             "timestamp": datetime.utcnow().isoformat(),
+            "performance": {
+                "response_time_ms": response_time_ms,
+                "tokens_used": tokens_used
+            },
             "rate_limit": {
                 "remaining_minute": rate_status["minute_remaining"],
                 "remaining_day": rate_status["day_remaining"]

@@ -45,7 +45,7 @@ class User(db.Model):
 
 
 class ChatSession(db.Model):
-    """Chat message model with metadata for analytics and context."""
+    """Chat message model with core fields and performance tracking."""
     __tablename__ = 'chat_sessions'
     
     chat_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -56,15 +56,9 @@ class ChatSession(db.Model):
     message_text = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Metadata fields for analytics
-    topic = db.Column(db.String(100), nullable=True)  # Auto-detected: 'email', 'objection', 'follow-up'
-    sentiment = db.Column(db.String(20), nullable=True)  # 'positive', 'neutral', 'negative'
+    # Performance tracking (for AI responses only)
     response_time_ms = db.Column(db.Integer, nullable=True)  # AI response time
-    tokens_used = db.Column(db.Integer, nullable=True)  # Token count
-    
-    # For future: link to leads/deals
-    lead_id = db.Column(db.String(255), nullable=True)
-    deal_id = db.Column(db.String(255), nullable=True)
+    tokens_used = db.Column(db.Integer, nullable=True)  # Token count from Gemini API
     
     def to_dict(self):
         """Convert to dictionary for API responses."""
@@ -74,38 +68,6 @@ class ChatSession(db.Model):
             "message_type": self.message_type,
             "message": self.message_text,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
-            "topic": self.topic,
-            "sentiment": self.sentiment
-        }
-
-
-class ConversationSummary(db.Model):
-    """
-    Summary of conversations for quick reference.
-    Generated periodically for longer conversations.
-    """
-    __tablename__ = 'conversation_summaries'
-    
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.String(255), db.ForeignKey('users.user_id'), nullable=False)
-    session_id = db.Column(db.String(255), nullable=False)
-    
-    # Summary content
-    summary_text = db.Column(db.Text)
-    key_topics = db.Column(db.Text)  # JSON array of topics
-    action_items = db.Column(db.Text)  # JSON array of action items
-    
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    message_count = db.Column(db.Integer, default=0)
-    
-    def to_dict(self):
-        """Convert to dictionary for API responses."""
-        return {
-            "session_id": self.session_id,
-            "summary": self.summary_text,
-            "key_topics": self.key_topics,
-            "action_items": self.action_items,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "message_count": self.message_count
+            "response_time_ms": self.response_time_ms,
+            "tokens_used": self.tokens_used
         }
