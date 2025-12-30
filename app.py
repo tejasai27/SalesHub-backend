@@ -11,10 +11,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
-    # Configure CORS with more options
+    # Configure CORS - Allow all origins for development (Chrome extension SWs may have null origin)
     CORS(app, 
-         origins=Config.CORS_ORIGINS,
-         supports_credentials=True,
+         origins="*",
+         supports_credentials=False,  # Cannot use credentials with wildcard
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
          allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
          expose_headers=["Content-Length", "X-Requested-With"],

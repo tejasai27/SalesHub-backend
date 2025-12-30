@@ -104,8 +104,21 @@ def get_history(user_id):
         limit = min(int(request.args.get('limit', 100)), 500)
         offset = int(request.args.get('offset', 0))
         domain_filter = request.args.get('domain')
+        days = request.args.get('days')
         
         query = WebsiteVisit.query.filter_by(user_id=user_id)
+        
+        # Filter by days if provided
+        if days:
+            try:
+                days_int = int(days)
+                # Filter from start of day (midnight UTC) N days ago
+                now = datetime.utcnow()
+                start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                since = start_of_today - timedelta(days=days_int - 1)  # -1 because days=1 means today only
+                query = query.filter(WebsiteVisit.timestamp >= since)
+            except ValueError:
+                pass
         
         if domain_filter:
             query = query.filter_by(domain=domain_filter)
@@ -142,7 +155,10 @@ def get_analytics(user_id):
     """
     try:
         days = min(int(request.args.get('days', 7)), 30)
-        since = datetime.utcnow() - timedelta(days=days)
+        # Filter from start of day (midnight UTC) N days ago
+        now = datetime.utcnow()
+        start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        since = start_of_today - timedelta(days=days - 1)  # -1 because days=1 means today only
         
         # Base query
         base_query = WebsiteVisit.query.filter(

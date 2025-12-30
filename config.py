@@ -34,8 +34,10 @@ class Config:
         CORS_ORIGINS = [
             'http://localhost:3000',
             'http://localhost:5173',
-            # Chrome extension origins - add specific IDs or use regex pattern
+            # Chrome extension origins - regex pattern for all extensions
             re.compile(r'^chrome-extension://.*$'),
+            # Allow all origins for development (Chrome extension SWs may have null origin)
+            '*',
         ]
     
     # Log CORS configuration on import

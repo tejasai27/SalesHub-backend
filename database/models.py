@@ -107,6 +107,6 @@ class WebsiteVisit(db.Model):
             "event_type": self.event_type,
             "tab_id": self.tab_id,
             "duration_seconds": self.duration_seconds,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None
+            "timestamp": (self.timestamp.isoformat() + 'Z') if self.timestamp else None
         }
 
